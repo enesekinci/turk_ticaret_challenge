@@ -1,0 +1,20 @@
+{
+    "name": "enesekinci/turk_ticaret_net_sepet_restful_api",
+    "autoload": {
+        "psr-4": {
+            "App\\": "app/",
+            "Core\\": "core/",
+            "Database\\": "database/"
+        },
+        "files": [
+            "app/Helpers/index.php"
+        ]
+    },
+    "authors": [
+        {
+            "name": "Enes Ekinci",
+            "email": "enes.eknc.96@gmail.com"
+        }
+    ],
+    "require": {}
+}
