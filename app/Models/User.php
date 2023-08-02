@@ -22,4 +22,9 @@ class User extends BaseModel
         'name',
         'email',
     ];
+
+    public function getBasketItems()
+    {
+        return Basket::get('*', 'user_id = ' . $this->id);
+    }
 }
