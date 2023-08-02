@@ -3,27 +3,29 @@
 namespace App\Models;
 
 use App\Models\Traits\Jsonable;
+use App\Models\Traits\QueryBuilder;
 use Database\Crud;
 use Database\Database;
 use PDO;
 
-abstract class BaseModel
+class BaseModel
 {
-    use Crud;
     use Jsonable;
+    use QueryBuilder;
+    use Crud;
 
     protected $table;
     protected $columns;
     protected $fillable;
     protected $jsonable;
     protected $values;
-    protected static $instance;
+    protected static $instances = [];
     protected PDO $connection;
-
 
     public function __construct(array $data = [])
     {
         $this->connection = Database::getInstance()->getConnection();
+
         if ($data) {
             $this->fill($data);
         }
@@ -49,35 +51,25 @@ abstract class BaseModel
         return $this;
     }
 
-    public static function connection()
+    protected static function make(array $data)
     {
-        return self::instance()->connection;
+        foreach (self::instance()->getColumns() as $column) {
+            self::instance()->values[$column] = $data[$column];
+        }
+
+        return new static($data);
     }
 
-    public static function getTable()
-    {
-        return self::instance()->table ?:
-            strtolower(str_replace('App\\Models\\', '', get_called_class()));
-    }
 
-    public function getColumns()
+    public static function instance()
     {
-        return $this->columns ?:
-            $this->columns = $this->getColumnsFromDatabase();
-    }
+        $class = get_called_class();
 
-    public static function getFillable()
-    {
-        return self::instance()->fillable;
-    }
+        if (!isset(self::$instances[$class])) {
+            self::$instances[$class] = new $class;
+        }
 
-    public static function getColumnsFromDatabase()
-    {
-        $table = self::instance()->table;
-        $sql = "SHOW COLUMNS FROM {$table}";
-        $result = self::instance()->connection->query($sql);
-        $columns = $result->fetchAll(\PDO::FETCH_COLUMN);
-        return $columns;
+        return self::$instances[$class];
     }
 
     public function fill(array $data)
@@ -92,21 +84,9 @@ abstract class BaseModel
         return $this;
     }
 
-    protected static function make(array $data)
+    protected function fillId(int $id)
     {
-        foreach (self::instance()->getColumns() as $column) {
-            self::instance()->values[$column] = $data[$column];
-        }
-
-        return self::instance();
-    }
-
-    public static function instance()
-    {
-        if (!self::$instance) {
-            self::$instance = new static;
-        }
-
-        return self::$instance;
+        $this->values['id'] = $id;
+        return $this;
     }
 }

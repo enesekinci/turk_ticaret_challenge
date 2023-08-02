@@ -8,7 +8,6 @@ trait Crud
 {
     public static function create(array $data)
     {
-        $table = self::getTable();
         $fillableColumns = self::getFillable();
         $filteredColumns = array_filter($fillableColumns, static fn ($column) => $column !== 'id');
 
@@ -20,13 +19,9 @@ trait Crud
             }
         }
 
-        $sql = "INSERT INTO {$table} (";
-        $sql .= implode(', ', array_keys($values));
-        $sql .= ") VALUES (";
-        $sql .= implode(', ', array_map(fn ($column) => ":{$column}", array_keys($values)));
-        $sql .= ")";
+        $queryString  = self::instance()->insertQuery($values);
 
-        $statement = self::instance()->connection->prepare($sql);
+        $statement = self::instance()->connection->prepare($queryString);
 
         foreach ($values as $column => $value) {
             $statement->bindValue(":{$column}", $value);
@@ -37,16 +32,29 @@ trait Crud
             return false;
         }
 
-        $data['id'] = self::instance()->connection->lastInsertId();
+        $lastInsertId = self::instance()->connection->lastInsertId();
 
-        return self::instance()->make($data);
+        return self::instance()->make($data)->fillId($lastInsertId);
     }
 
-    public static function find(int $id)
+    /**
+     * @param int|array $options
+     * @return bool|static
+     * @throws \Exception
+     * @example
+     * $options = [
+     * 'columns' => 'id, name, email',
+     * 'where' => 'name = "John"',
+     * @example
+     * $options = 1
+     */
+    public static function find(?int $id = null, string $columns = '*', string $where = '', int $limit = 1): bool|static
     {
-        $table = self::getTable();
+        if ($id) {
+            $where = $where ? $where . ' AND id = ' . $id : 'id = ' . $id;
+        }
 
-        $queryString = "SELECT * FROM {$table} WHERE id = {$id}";
+        $queryString = self::instance()->selectQuery($columns, $where, '', $limit);
 
         $query = self::instance()->connection->query($queryString);
 
@@ -56,59 +64,61 @@ trait Crud
 
         $data = $query->fetch(PDO::FETCH_ASSOC);
 
-        return self::instance()->make($data);
+        $id = $data['id'];
+
+        return self::instance()->make($data)->fillId($id);
     }
 
-    public function get()
+    /**
+     * @param array $options
+     * @return array
+     * @throws \Exception
+     * @example
+     * $options = [
+     * 'columns' => 'id, name, email',
+     * 'where' => 'id = 1',
+     * 'orderBy' => 'id DESC',
+     * 'limit' => 10,
+     * 'offset' => 0
+     * ]
+     */
+    public static function get(string $columns = '*', string $where = '', string $orderBy = '', string $limit = '', string $offset = '')
     {
-        #TODO: normalde where ve order by gibi sorgular burada olacak
+        $queryString = self::instance()->selectQuery($columns, $where, $orderBy, $limit, $offset);
 
-        $query = $this->connection->query("SELECT * FROM {$this->getTable()}");
+        $data = self::instance()->connection->query($queryString)->fetchAll(PDO::FETCH_ASSOC);
 
-        $data = $query->fetchAll(PDO::FETCH_ASSOC);
-
-        $users = [];
+        $items = [];
 
         foreach ($data as $value) {
-            $className = get_called_class();
-
-            $model = new $className();
-            $user = $model->make($value);
-
-            $users[] = $user;
+            $items[] = self::instance()->make($value)->fillId($value['id']);
         }
 
-        return $users;
+        return $items;
     }
 
     public function update(array $data)
     {
-        $fillableColumns = $this->getFillable();
+        $queryString = $this->updateQuery($data);
 
-        foreach ($fillableColumns as $column) {
-            if (isset($data[$column])) {
-                $this->values[$column] = $data[$column];
-            }
+        $statement = $this->connection->prepare($queryString);
+
+        foreach ($data as $column => $value) {
+            $statement->bindValue(":{$column}", $value);
         }
 
-        $sql = "UPDATE {$this->getTable()} SET ";
-
-        $sql .= implode(', ', array_map(function ($column) {
-            return "{$column} = :{$column}";
-        }, $fillableColumns));
-
-        $sql .= " WHERE id = :id";
-
-        return  $this->connection->prepare($sql)->execute($this->values);
+        return $statement->execute();
     }
 
     public static function delete(int $id)
     {
-        $table = self::getTable();
+        $queryString = self::instance()->deleteQuery($id);
 
-        $sql = "DELETE FROM {$table} WHERE id = {$id}";
+        $statement = self::instance()->connection->prepare($queryString);
 
-        return self::instance()->connection->exec($sql);
+        $statement->bindValue(':id', $id);
+
+        return $statement->execute();
     }
 
     public function save()
