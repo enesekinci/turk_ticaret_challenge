@@ -12,13 +12,7 @@ class BasketRemoveItemController extends Controller
         $productId = request()->get('product_id');
         $quantity = request()->get('quantity');
 
-        $isValid = validate([
-            'product_id' => $productId,
-            'quantity' => $quantity,
-        ], [
-            'product_id' => 'required|integer',
-            'quantity' => 'required|integer',
-        ]);
+        $isValid = validate(['product_id' => $productId], ['product_id' => 'required|integer']);
 
         if ($isValid !== true) {
             return responseJson([
@@ -27,29 +21,47 @@ class BasketRemoveItemController extends Controller
             ]);
         }
 
-        if ($quantity <= 0) {
+        $basketItem = \basket()->getItem($productId);
+
+        if ($basketItem === null) {
+            return \responseJson([
+                'status' => false,
+                'errors' => [
+                    'product_id' => 'Ürün sepetinizde bulunmamaktadır.'
+                ],
+            ]);
+        }
+
+        $product = $basketItem['product'];
+
+        if ($quantity === 0) {
+
             \basket()->remove($productId);
+
             return \responseJson([
                 'status' => true,
                 'message' => 'Ürün sepetten kaldırıldı.',
             ]);
         }
 
-        $product = \basket()->getItem($productId)['product'];
+        $totalQuantity = \basket()->getItemQuantity($product) - 1;
 
-        $totalQuantity = \basket()->getItemQuantity($product) + $quantity;
+        #TODO: burada yeni miktarı stok durumuna göre uygun hale getirebilir.(Eğer sepetteki kadar ürün kalmadıysa komple kaldırılabilir.)
 
-        #TODO: burada yeni miktarı stok durumuna göre uygun hale getirebilir.
         if ($product->stock_quantity < $totalQuantity) {
-            return responseJson([
-                'success' => false,
+
+            basket()->remove($product);
+
+            return \responseJson([
+                'status' => false,
                 'errors' => [
                     'quantity' => 'Ürün stokta yeterli miktarda bulunmamaktadır.'
                 ],
             ]);
         }
 
-        \basket()->update($product, $quantity);
+
+        \basket()->update($product, $totalQuantity);
 
         return \responseJson([
             'status' => true,

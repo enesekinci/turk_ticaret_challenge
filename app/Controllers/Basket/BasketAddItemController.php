@@ -10,29 +10,13 @@ class BasketAddItemController extends Controller
     public function add()
     {
         $productId = \request()->get('product_id');
-        $quantity = \request()->get('quantity');
 
-        $isValid = validate([
-            'product_id' => $productId,
-            'quantity' => $quantity,
-        ], [
-            'product_id' => 'required|integer',
-            'quantity' => 'required|integer',
-        ]);
+        $isValid = validate(['product_id' => $productId], ['product_id' => 'required|integer']);
 
         if ($isValid !== true) {
             return responseJson([
                 'success' => false,
                 'errors' => $isValid,
-            ]);
-        }
-
-        if ($quantity <= 0) {
-            return responseJson([
-                'success' => false,
-                'errors' => [
-                    'quantity' => 'Ürün adedi 0\'dan büyük olmalıdır.'
-                ],
             ]);
         }
 
@@ -49,7 +33,7 @@ class BasketAddItemController extends Controller
 
         #TODO: oluşabilecek hatalar için try catch kullanılabilir.
 
-        $totalQuantity = \basket()->getItemQuantity($product) + $quantity;
+        $totalQuantity = \basket()->getItemQuantity($product) + 1;
 
         if ($product->stock_quantity < $totalQuantity) {
             return responseJson([
@@ -60,7 +44,7 @@ class BasketAddItemController extends Controller
             ]);
         }
 
-        \basket()->add($product, $quantity);
+        \basket()->add($product, 1);
 
         return responseJson([
             'success' => true,

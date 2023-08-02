@@ -43,13 +43,13 @@ class Basket
         return $this->items;
     }
 
-    public function getItem(int|Product $productId): array
+    public function getItem(int|Product $productId): ?array
     {
         if ($productId instanceof Product) {
             $productId = $productId->id;
         }
 
-        return $this->items[$productId];
+        return $this->items[$productId] ?? null;
     }
 
     public function clear(): Basket
@@ -93,11 +93,12 @@ class Basket
 
     public function remove(int $productId)
     {
+
+        $basketItem = $this->getItem($productId);
+
+        BasketModel::delete($basketItem['item_id']);
+
         unset($this->items[$productId]);
-
-        $basketItem = BasketModel::find('id', 'user_id = ' . user()->id . ' AND product_id = ' . $productId);
-
-        BasketModel::delete($basketItem->id);
 
         return $this;
     }
