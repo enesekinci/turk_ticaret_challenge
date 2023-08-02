@@ -6,7 +6,7 @@ use InvalidArgumentException;
 
 class Validator
 {
-    public function validate(array $data, array $rules): array
+    public function validate(array $data, array $rules): array|bool
     {
         $errors = [];
 
@@ -25,7 +25,9 @@ class Validator
             }
         }
 
-        return $errors;
+        $isValid = empty($errors);
+
+        return $isValid ?: $errors;
     }
 
     private function getRuleNameAndValue(string $rule): array
@@ -44,6 +46,8 @@ class Validator
             'email' => new EmailValidator(),
             'min' => new MinLengthValidator(),
             'max' => new MaxLengthValidator(),
+            'integer' => new IntegerValidator(),
+            'string' => new StringValidator(),
             default => throw new InvalidArgumentException("Geçersiz doğrulama kuralı: {$ruleName}"),
         };
     }
@@ -58,7 +62,7 @@ class RequiredValidator implements ValidatorInterface
 {
     public function validate(array $data, string $field, ?string $ruleValue): ?string
     {
-        return (!isset($data[$field]) || empty($data[$field])) ? 'Bu alan zorunludur.' : null;
+        return (!isset($data[$field]) || empty($data[$field])) ? ErrorCode::REQUIRED : null;
     }
 }
 
@@ -66,7 +70,7 @@ class EmailValidator implements ValidatorInterface
 {
     public function validate(array $data, string $field, ?string $ruleValue): ?string
     {
-        return (!filter_var($data[$field], FILTER_VALIDATE_EMAIL)) ? 'Geçerli bir email adresi giriniz.' : null;
+        return (!filter_var($data[$field], FILTER_VALIDATE_EMAIL)) ? ErrorCode::EMAIL : null;
     }
 }
 
@@ -74,7 +78,7 @@ class MinLengthValidator implements ValidatorInterface
 {
     public function validate(array $data, string $field, ?string $ruleValue): ?string
     {
-        return (strlen($data[$field]) < (int) $ruleValue) ? "Bu alan en az {$ruleValue} karakter olmalıdır." : null;
+        return (strlen($data[$field]) < (int) $ruleValue) ? ErrorCode::MIN : null;
     }
 }
 
@@ -82,6 +86,22 @@ class MaxLengthValidator implements ValidatorInterface
 {
     public function validate(array $data, string $field, ?string $ruleValue): ?string
     {
-        return (strlen($data[$field]) > (int) $ruleValue) ? "Bu alan en fazla {$ruleValue} karakter olmalıdır." : null;
+        return (strlen($data[$field]) > (int) $ruleValue) ? ErrorCode::MIN : null;
+    }
+}
+
+class IntegerValidator implements ValidatorInterface
+{
+    public function validate(array $data, string $field, ?string $ruleValue): ?string
+    {
+        return (!is_numeric($data[$field])) ? ErrorCode::INTEGER : null;
+    }
+}
+
+class StringValidator implements ValidatorInterface
+{
+    public function validate(array $data, string $field, ?string $ruleValue): ?string
+    {
+        return (!is_string($data[$field])) ? ErrorCode::STRING : null;
     }
 }
