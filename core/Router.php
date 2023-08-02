@@ -18,7 +18,10 @@ class Router
 
     public function getRequestUri(): string
     {
-        return $_SERVER['REQUEST_URI'];
+        $requestUri = $_SERVER['REQUEST_URI'] ?? '/';
+        $position = strpos($requestUri, '?');
+        $requestUri = $position === false ? $requestUri : substr($requestUri, 0, $position);
+        return $requestUri;
     }
 
     public function isDefined(?string $method = null, ?string $requestUri = null): bool
@@ -37,7 +40,7 @@ class Router
         $requestUri = $requestUri ?: $this->getRequestUri();
 
         if (!$this->isDefined($method, $requestUri)) {
-            return response([
+            return responseJson([
                 'message' => 'Route not found',
             ], 404);
         }

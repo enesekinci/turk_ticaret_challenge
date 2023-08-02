@@ -43,15 +43,24 @@ final class Request
     {
         $body = [];
 
-        if ($this->getMethod() === 'get') {
-            foreach ($_GET as $key => $value) {
-                $body[$key] = filter_input(INPUT_GET, $key, FILTER_SANITIZE_SPECIAL_CHARS);
-            }
+        $contentType = $this->getHeader('HTTP_CONTENT_TYPE');
+
+        if ($contentType === 'application/json') {
+            $body = json_decode(file_get_contents('php://input'), true);
         }
 
-        if ($this->getMethod() === 'post') {
-            foreach ($_POST as $key => $value) {
-                $body[$key] = filter_input(INPUT_POST, $key, FILTER_SANITIZE_SPECIAL_CHARS);
+        if ($contentType === 'application/x-www-form-urlencoded') {
+
+            if ($this->getMethod() === 'post') {
+                foreach ($_POST as $key => $value) {
+                    $body[$key] = filter_input(INPUT_POST, $key, FILTER_SANITIZE_SPECIAL_CHARS);
+                }
+            }
+
+            if ($this->getMethod() === 'get') {
+                foreach ($_GET as $key => $value) {
+                    $body[$key] = filter_input(INPUT_GET, $key, FILTER_SANITIZE_SPECIAL_CHARS);
+                }
             }
         }
 
@@ -111,6 +120,17 @@ final class Request
         }
 
         return $authorizationToken;
+    }
+
+    public function get(?string $key = null, mixed $default = null)
+    {
+        $body = $this->getBody();
+
+        if (!$key) {
+            return $body;
+        }
+
+        return $body[$key] ?? $default;
     }
 
     public function validate($data, $rules)
