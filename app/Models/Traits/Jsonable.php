@@ -17,7 +17,11 @@ trait Jsonable
                 $data[$column] = $values[$column];
             }
         }
+        return $data;
+    }
 
-        return json_encode($data);
+    public function toArray()
+    {
+        return $this->toJson();
     }
 }
