@@ -1,14 +1,9 @@
 <?php
 
 require_once __DIR__ . '/init.php';
-
-use App\Models\User;
-use Core\Router;
-
 require_once __DIR__ . '/web/routes.php';
 
-
-
+use Core\Router;
 
 
 $router = new Router();
