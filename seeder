@@ -1,10 +1,14 @@
 <?php
 
+# TODO: foreign key eklenmeli!
+
 require_once __DIR__ . '/init.php';
 
 use Database\Database;
 
 $connection = Database::getInstance()->getConnection();
+
+$dropTableQueryString = "DROP TABLE IF EXISTS users, categories, products, baskets";
 
 $userTableQueryString = "CREATE TABLE IF NOT EXISTS users (
     id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -15,32 +19,12 @@ $userTableQueryString = "CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )";
 
-$users = [
-    [
-        'name' => 'admin',
-        'email' => 'admin@gmail.com',
-    ],
-    [
-        'name' => 'test',
-        'email' => 'test@gmail.com',
-    ],
-];
-
 $categoryTableQueryString = "CREATE TABLE IF NOT EXISTS categories (
     id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )";
-
-$categories = [
-    ['title' => 'Roman'],
-    ['title' => 'Kişisel Gelişim'],
-    ['title' => 'Din Tasavvuf'],
-    ['title' => 'Çocuk ve Gençlik'],
-    ['title' => 'Öykü'],
-    ['title' => 'Felsefe'],
-];
 
 $productTableQueryString = "CREATE TABLE IF NOT EXISTS products (
     id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -53,7 +37,68 @@ $productTableQueryString = "CREATE TABLE IF NOT EXISTS products (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )";
 
-# TODO: foreign key ekle
+$basketTableQueryString = "CREATE TABLE IF NOT EXISTS baskets (
+    id INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id INT(6) UNSIGNED NOT NULL,
+    product_id INT(6) UNSIGNED NOT NULL,
+    quantity INT(6) UNSIGNED NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+)";
+
+// $shippingTableQueryString = "CREATE TABLE shippings (
+//     id INT AUTO_INCREMENT PRIMARY KEY,
+//     order_id INT,
+//     address TEXT,
+//     shipping_fee DECIMAL(10, 2),
+//     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+//     FOREIGN KEY (order_id) REFERENCES orders(id)
+// )";
+
+// $campaignTableQueryString = "CREATE TABLE IF NOT EXISTS campaigns (
+//     id INT AUTO_INCREMENT PRIMARY KEY,
+//     name VARCHAR(255),
+//     description TEXT,
+//     type VARCHAR(50),
+//     min_order_total DECIMAL(10, 2),
+//     discount_rate DECIMAL(5, 2),
+//     free_item_id INT,
+//     free_item_qty INT,
+//     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+// )";
+
+// $cartTableQueryString = "CREATE TABLE carts (
+//     id INT AUTO_INCREMENT PRIMARY KEY,
+//     user_id INT,
+//     product_id INT,
+//     quantity INT,
+//     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+//     FOREIGN KEY (user_id) REFERENCES users(id),
+//     FOREIGN KEY (product_id) REFERENCES products(id)
+// )";
+
+$users = [
+    [
+        'name' => 'admin',
+        'email' => 'admin@gmail.com',
+    ],
+    [
+        'name' => 'test',
+        'email' => 'test@gmail.com',
+    ],
+];
+
+$categories = [
+    ['title' => 'Roman'],
+    ['title' => 'Kişisel Gelişim'],
+    ['title' => 'Din Tasavvuf'],
+    ['title' => 'Çocuk ve Gençlik'],
+    ['title' => 'Öykü'],
+    ['title' => 'Felsefe'],
+];
 
 $products = [
     [
@@ -170,14 +215,89 @@ $products = [
     ]
 ];
 
+$baskets = [
+    [
+        'user_id' => 1,
+        'product_id' => 1,
+        'quantity' => 2,
+    ],
+    [
+        'user_id' => 1,
+        'product_id' => 2,
+        'quantity' => 2,
+    ],
+    [
+        'user_id' => 1,
+        'product_id' => 3,
+        'quantity' => 2,
+    ],
+    [
+        'user_id' => 1,
+        'product_id' => 4,
+        'quantity' => 2,
+    ],
+    [
+        'user_id' => 1,
+        'product_id' => 5,
+        'quantity' => 2,
+    ],
+    [
+        'user_id' => 1,
+        'product_id' => 6,
+        'quantity' => 2,
+    ],
+    [
+        'user_id' => 1,
+        'product_id' => 7,
+        'quantity' => 2,
+    ],
 
-# bütün tabloları sil
-$dropTableQueryString = "DROP TABLE IF EXISTS users, categories, products";
+    [
+        'user_id' => 2,
+        'product_id' => 1,
+        'quantity' => 2,
+    ],
+    [
+        'user_id' => 2,
+        'product_id' => 2,
+        'quantity' => 2,
+    ],
+    [
+        'user_id' => 2,
+        'product_id' => 3,
+        'quantity' => 2,
+    ],
+    [
+        'user_id' => 2,
+        'product_id' => 4,
+        'quantity' => 2,
+    ],
+    [
+        'user_id' => 2,
+        'product_id' => 5,
+        'quantity' => 2,
+    ],
+    [
+        'user_id' => 2,
+        'product_id' => 6,
+        'quantity' => 2,
+    ],
+    [
+        'user_id' => 2,
+        'product_id' => 7,
+        'quantity' => 2,
+    ],
+];
+
+
+// $shippings = [];
+
 
 $connection->prepare($dropTableQueryString)->execute();
 $connection->prepare($userTableQueryString)->execute();
 $connection->prepare($categoryTableQueryString)->execute();
 $connection->prepare($productTableQueryString)->execute();
+$connection->prepare($basketTableQueryString)->execute();
 
 
 foreach ($users as $user) {
@@ -210,4 +330,46 @@ foreach ($products as $product) {
     ]);
 }
 
+foreach ($baskets as $basket) {
+    $insertBasketQueryString = "INSERT INTO baskets (user_id, product_id, quantity) VALUES (:user_id, :product_id, :quantity)";
+    $statement = $connection->prepare($insertBasketQueryString);
+    $statement->execute([
+        'user_id' => $basket['user_id'],
+        'product_id' => $basket['product_id'],
+        'quantity' => $basket['quantity'],
+    ]);
+}
+
 echo "\e[32mDatabase has been seeded successfully.\e[0m\n";
+
+
+
+/**
+ * 
+ *  
+#kargo
+    # kural 
+        # 500 tl üzeri kargo bedava, 500 tl altı 13.99 tl kargo
+
+# kampanyalar
+    # sadece bir kampanyadan faydalanılabilir
+    # en uygun kampanya seçilir
+    # kampanya yönetimi olacak ve yeni kampanyalar eklenebilecek
+    # türler
+        # 1000 tl ve üzeri alışverişlerde sipariş toplamına %25 indirim
+        # eğer bedava kitap hakkı kazanmışsa indirimden faydalanamaz
+        # Sabahattin Ali'nin Roman kitaplarında 3 üründen 1 tanesi ve 6 üründen 3 tanesi bedava. (Bedava en fazla 4 kitap verilebilir. Örn: 10 adet alan 6 kitap parası öder.)
+ *
+ *
+ */
+interface CampaignInterface
+{
+    public function apply();
+}
+
+class SabahaatinAliCampaign implements CampaignInterface
+{
+    public function apply()
+    {
+    }
+}
