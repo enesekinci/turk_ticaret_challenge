@@ -12,8 +12,6 @@ use App\Controllers\TestController;
 
 Route::get('/error-code', [ErrorCodeController::class, 'action']);
 
-Route::match(['get', 'post'], '/test', [TestController::class, 'index']);
-
 // # get basket
 Route::get('/basket/items', [BasketItemsController::class, 'items']);
 // # add to basket
