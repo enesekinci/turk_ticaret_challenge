@@ -46,40 +46,6 @@ $basketTableQueryString = "CREATE TABLE IF NOT EXISTS baskets (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 )";
 
-// $shippingTableQueryString = "CREATE TABLE shippings (
-//     id INT AUTO_INCREMENT PRIMARY KEY,
-//     order_id INT,
-//     address TEXT,
-//     shipping_fee DECIMAL(10, 2),
-//     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-//     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-//     FOREIGN KEY (order_id) REFERENCES orders(id)
-// )";
-
-// $campaignTableQueryString = "CREATE TABLE IF NOT EXISTS campaigns (
-//     id INT AUTO_INCREMENT PRIMARY KEY,
-//     name VARCHAR(255),
-//     description TEXT,
-//     type VARCHAR(50),
-//     min_order_total DECIMAL(10, 2),
-//     discount_rate DECIMAL(5, 2),
-//     free_item_id INT,
-//     free_item_qty INT,
-//     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-//     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-// )";
-
-// $cartTableQueryString = "CREATE TABLE carts (
-//     id INT AUTO_INCREMENT PRIMARY KEY,
-//     user_id INT,
-//     product_id INT,
-//     quantity INT,
-//     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-//     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-//     FOREIGN KEY (user_id) REFERENCES users(id),
-//     FOREIGN KEY (product_id) REFERENCES products(id)
-// )";
-
 $users = [
     [
         'name' => 'admin',
@@ -251,7 +217,6 @@ $baskets = [
         'product_id' => 7,
         'quantity' => 2,
     ],
-
     [
         'user_id' => 2,
         'product_id' => 1,
@@ -288,9 +253,6 @@ $baskets = [
         'quantity' => 2,
     ],
 ];
-
-
-// $shippings = [];
 
 
 $connection->prepare($dropTableQueryString)->execute();
@@ -341,35 +303,3 @@ foreach ($baskets as $basket) {
 }
 
 echo "\e[32mDatabase has been seeded successfully.\e[0m\n";
-
-
-
-/**
- * 
- *  
-#kargo
-    # kural 
-        # 500 tl üzeri kargo bedava, 500 tl altı 13.99 tl kargo
-
-# kampanyalar
-    # sadece bir kampanyadan faydalanılabilir
-    # en uygun kampanya seçilir
-    # kampanya yönetimi olacak ve yeni kampanyalar eklenebilecek
-    # türler
-        # 1000 tl ve üzeri alışverişlerde sipariş toplamına %25 indirim
-        # eğer bedava kitap hakkı kazanmışsa indirimden faydalanamaz
-        # Sabahattin Ali'nin Roman kitaplarında 3 üründen 1 tanesi ve 6 üründen 3 tanesi bedava. (Bedava en fazla 4 kitap verilebilir. Örn: 10 adet alan 6 kitap parası öder.)
- *
- *
- */
-interface CampaignInterface
-{
-    public function apply();
-}
-
-class SabahaatinAliCampaign implements CampaignInterface
-{
-    public function apply()
-    {
-    }
-}
